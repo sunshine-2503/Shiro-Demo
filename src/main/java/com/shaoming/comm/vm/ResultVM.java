@@ -7,9 +7,9 @@ import java.io.Serializable;
  */
 public class ResultVM implements Serializable {
     private static final long serialVersionUID = 1L;
-    private Integer code;//0成功 1失败
-    private String msg;
-    private Object result;
+    private Integer code; // 200:成功；500:失败
+    private String msg; // 错误信息
+    private Object result; // 结果集
 
     public ResultVM() { }
 

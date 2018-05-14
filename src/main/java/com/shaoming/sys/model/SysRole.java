@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 public class SysRole {
     private Integer id; // ID
     private String roleName; // 菜单名称
+    private String desc; // 描述
     private Integer order; // 排序（值越大，越靠前）
     private Timestamp createTime; // 创建时间
     private Timestamp updateTime; // 更新时间

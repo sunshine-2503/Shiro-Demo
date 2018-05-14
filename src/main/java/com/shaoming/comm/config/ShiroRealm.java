@@ -1,8 +1,6 @@
 package com.shaoming.comm.config;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
-import com.baomidou.mybatisplus.mapper.Wrapper;
-import com.shaoming.comm.utils.MD5Util;
 import com.shaoming.comm.vm.SysUserStatus;
 import com.shaoming.sys.model.SysMenu;
 import com.shaoming.sys.model.SysRoleMenu;
@@ -12,27 +10,24 @@ import com.shaoming.sys.service.SysMenuService;
 import com.shaoming.sys.service.SysRoleMenuService;
 import com.shaoming.sys.service.SysUserRoleService;
 import com.shaoming.sys.service.SysUserService;
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
-import org.apache.shiro.crypto.hash.Md5Hash;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by ShaoMing on 2018/4/20
  */
+@Slf4j
 @Component
 public class ShiroRealm extends AuthorizingRealm {
-    private Logger logger = Logger.getLogger(ShiroRealm.class);
 
     @Resource
     private SysUserService sysUserService;
@@ -46,22 +41,39 @@ public class ShiroRealm extends AuthorizingRealm {
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
         SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
+        // 拥有的权限集合
+        Set<String> permissionSet = new HashSet<>();
         // 获取当前登录用户
         SysUser user = (SysUser) principalCollection.getPrimaryPrincipal();
+        // 获取所有菜单
+        List<SysMenu> sysMenus = sysMenuService.selectList(null);
+        // 判断用户是否未超级管理员, 若为超级管理员将赋予所有权限
+        if (user.getId() == 1) {
+            for (SysMenu menu : sysMenus) {
+                permissionSet.add(menu.getMenuCode());
+            }
+            authorizationInfo.addStringPermissions(permissionSet);
+            return authorizationInfo;
+        }
+        // 拼装menuMap
+        Map<Integer, SysMenu> menuMap = new HashMap<>();
+        for (SysMenu menu : sysMenus) {
+            menuMap.put(menu.getId(), menu);
+        }
+
         // 查询用户所属的角色集合
-        List<SysUserRole> roles = sysUserRoleService.selectList(new EntityWrapper<SysUserRole>().where("", user.getId()));
-        Set<String> pemissionSet = new HashSet<>();
+        List<SysUserRole> roles = sysUserRoleService.selectList(new EntityWrapper<SysUserRole>().where("user_id={0}", user.getId()));
+        // 获取所有角色菜单
+        List<SysRoleMenu> sysRoleMenus = sysRoleMenuService.selectList(null);
         for (SysUserRole role : roles) {
-            // 查询角色所拥有的菜单权限
-            List<SysRoleMenu> roleMenus = sysRoleMenuService.selectList(new EntityWrapper<SysRoleMenu>().where("role_id={0}", role.getRoleId()));
-            for (SysRoleMenu roleMenu : roleMenus) {
-                // 获取菜单信息
-                SysMenu menu = sysMenuService.selectById(roleMenu.getMenuId());
+            for (SysRoleMenu roleMenu : sysRoleMenus) {
+                if (!role.getRoleId().equals(roleMenu.getRoleId()))
+                    continue;
                 // 将菜单添加到权限列表
-                pemissionSet.add(menu.getMenuCode());
+                permissionSet.add(menuMap.get(roleMenu.getMenuId()).getMenuCode());
             }
         }
-        authorizationInfo.addStringPermissions(pemissionSet);
+        authorizationInfo.addStringPermissions(permissionSet);
         return authorizationInfo;
     }
 

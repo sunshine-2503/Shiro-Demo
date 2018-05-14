@@ -2,6 +2,7 @@ package com.shaoming.sys.controller;
 
 import com.shaoming.comm.vm.ResultVM;
 import com.shaoming.sys.service.SysUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Logger;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.*;
@@ -12,10 +13,10 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Created by ShaoMing on 2018/4/20
  */
+@Slf4j
 @RestController
 @RequestMapping("/web/sysUser")
 public class SysUserController {
-    private Logger logger = Logger.getLogger(SysUserController.class);
 
     @Autowired
     private SysUserService sysUserService;
