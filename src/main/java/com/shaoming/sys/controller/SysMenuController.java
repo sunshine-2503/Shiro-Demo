@@ -36,15 +36,15 @@ public class SysMenuController {
     @Autowired
     private SysRoleMenuService sysRoleMenuService;
 
-    /**
-     * 查询所有菜单
-     */
-    @RequiresPermissions({"power_menu"})
-    @GetMapping("/queryAllMenu")
-    public ResultVM queryAllMenu() {
-        List<SysMenu> sysMenus = sysMenuService.selectList(null);
-        return ResultVM.ok(sysMenus);
-    }
+//    /**
+//     * 查询所有菜单
+//     */
+//    @RequiresPermissions({"power_menu"})
+//    @GetMapping("/queryAllMenu")
+//    public ResultVM queryAllMenu() {
+//        List<SysMenu> sysMenus = sysMenuService.selectList(null);
+//        return ResultVM.ok(sysMenus);
+//    }
 
     /**
      * 用户所拥有权限对应的权限树形菜单结构
@@ -54,7 +54,7 @@ public class SysMenuController {
         // 获取当前登录用户信息
         SysUser user = (SysUser) SecurityUtils.getSubject().getPrincipal();
         // 查找用户所对应的角色
-        List<SysUserRole> sysUserRoles = sysUserRoleService.selectList(new EntityWrapper<SysUserRole>().where("user_id={0}", user.getId()).orderBy("role_id", true));
+        List<SysUserRole> sysUserRoles = sysUserRoleService.selectList(new EntityWrapper<SysUserRole>().where("user_id={0} and tb_status != '删除'", user.getId()).orderBy("role_id", true));
         if (sysUserRoles==null || sysUserRoles.size()==0)
             return ResultVM.ok(null);
         // 判断用户是否为 “超级管理员”
@@ -79,11 +79,13 @@ public class SysMenuController {
 
     /**
      * 获取角色权限列表
+     *   注意：需要有菜单管理权限
      */
+    @RequiresPermissions({"power_menu"})
     @GetMapping("/queryRoleMenuTree")
     public ResultVM queryRoleMenuTree(@RequestParam(name = "roleId") Integer roleId){
         // 查找所有权限菜单菜单
-        List<SysRoleMenu> sysRoleMenus = sysRoleMenuService.selectList(new EntityWrapper<SysRoleMenu>().where("role_id={0}", roleId));
+        List<SysRoleMenu> sysRoleMenus = sysRoleMenuService.selectList(new EntityWrapper<SysRoleMenu>().where("role_id={0} and tb_status != '删除'", roleId));
         List<Integer> menuIdList = new ArrayList<>();
         for (SysRoleMenu rm : sysRoleMenus) {
             if (menuIdList.contains(rm.getMenuId()))
@@ -98,6 +100,7 @@ public class SysMenuController {
 
     /**
      * 获取菜单管理列表
+     *   注意：需要有菜单管理权限
      */
     @RequiresPermissions({"power_menu"})
     @GetMapping("/queryMenuTree")
@@ -139,7 +142,7 @@ public class SysMenuController {
      */
     private List<MenuTreeVo> selectAllTree(MenuTreeVo parent){
         Integer parentId = parent == null ? 0 : parent.getId();
-        List<SysMenu> children = sysMenuService.selectList(new EntityWrapper<SysMenu>().where("`parent_id`={0}", parentId).orderBy("`order`",  false));
+        List<SysMenu> children = sysMenuService.selectList(new EntityWrapper<SysMenu>().where("`parent_id`={0} and tb_status != '删除'", parentId).orderBy("`order`",  false));
         if (children==null || children.size()==0)
             return null;
         List<MenuTreeVo> voList = new ArrayList<>();

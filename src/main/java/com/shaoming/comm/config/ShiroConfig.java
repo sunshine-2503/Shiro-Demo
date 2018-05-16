@@ -1,6 +1,6 @@
 package com.shaoming.comm.config;
 
-import org.apache.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.mgt.RememberMeManager;
 import org.apache.shiro.mgt.SecurityManager;
@@ -17,6 +17,7 @@ import org.crazycake.shiro.RedisCacheManager;
 import org.crazycake.shiro.RedisManager;
 import org.crazycake.shiro.RedisSessionDAO;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -28,9 +29,17 @@ import java.util.Map;
 /**
  * Created by shaoming on 2018/4/20
  */
+@Slf4j
 @Configuration
 public class ShiroConfig {
-    private Logger logger=Logger.getLogger(ShiroConfig.class);
+    @Value("${spring.redis.host}")
+    private String redisHost;
+    @Value("${spring.redis.port}")
+    private Integer redisPort;
+    @Value("${spring.redis.password}")
+    private String redisPassword;
+    @Value("${spring.redis.timeout}")
+    private Integer redisTimeout;
 
     @Bean
     public ShiroFilterFactoryBean shiroFilter(SecurityManager securityManager){
@@ -149,11 +158,11 @@ public class ShiroConfig {
     @Bean(name = "redisManager")
     public RedisManager redisManager() {
         RedisManager redisManager = new RedisManager();
-        redisManager.setHost("127.0.0.1");
-        redisManager.setPort(6379);
-        redisManager.setPassword("kanjinzhao");
+        redisManager.setHost(redisHost);
+        redisManager.setPort(redisPort);
+        redisManager.setPassword(redisPassword);
         redisManager.setExpire(1800); // 配置缓存过期时间
-        redisManager.setTimeout(30000);
+        redisManager.setTimeout(redisTimeout);
         return redisManager;
     }
 
@@ -217,7 +226,7 @@ public class ShiroConfig {
      * Shiro生命周期处理器
      */
     @Bean
-    public LifecycleBeanPostProcessor lifecycleBeanPostProcessor(){
+    public static LifecycleBeanPostProcessor lifecycleBeanPostProcessor(){
         return new LifecycleBeanPostProcessor();
     }
 

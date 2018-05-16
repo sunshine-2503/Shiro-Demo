@@ -83,7 +83,7 @@ public class ShiroRealm extends AuthorizingRealm {
         String userName = (String)authenticationToken.getPrincipal();
 //        String password = new String((char[]) authenticationToken.getCredentials());
         // 根据用户名查询用户信息
-        SysUser user = sysUserService.selectOne(new EntityWrapper<SysUser>().where("user_name={0}", userName));
+        SysUser user = sysUserService.selectOne(new EntityWrapper<SysUser>().where("user_name={0} and tb_status != '删除'", userName));
 
         // 判断用户是否存在
         if(user==null || user.getId()==null)

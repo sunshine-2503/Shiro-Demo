@@ -27,7 +27,7 @@ public class SysUserController {
     @PostMapping("/login")
     public ResultVM login(@RequestParam("userName") String userName,
                           @RequestParam("password") String password,
-                          @RequestParam(name = "rememberMe", required = false) Boolean rememberMe){
+                          @RequestParam(name = "rememberMe", defaultValue = "false") Boolean rememberMe){
         UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userName, password, rememberMe);
         Subject subject = SecurityUtils.getSubject();
         try {
