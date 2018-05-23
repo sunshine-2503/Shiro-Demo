@@ -11,5 +11,5 @@ import java.util.List;
 @Data
 public class MenuTreeVo extends SysMenu {
     private List<MenuTreeVo> childrenMenu; // 子级菜单
-    private Boolean isChecked; // 是否选中
+    private Boolean checked; // 是否选中
 }

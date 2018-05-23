@@ -119,7 +119,7 @@ public class ShiroConfig {
     }
 
     /**
-     * 哈希密码比较器。在myShiroRealm中作用参数使用
+     * 哈希密码比较器。在ShiroRealm中作用参数使用
      * 登陆时会比较用户输入的密码，跟数据库密码配合盐值salt解密后是否一致。
      */
     @Bean(name = "hashedCredentialsMatcher")

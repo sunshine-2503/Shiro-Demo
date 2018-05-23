@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Configuration;
  * Created by ShaoMing on 2018/4/20
  */
 @Configuration
-@MapperScan("com.shaoming.*.mapper")
 public class MybatisPlusConfig {
 
     /**

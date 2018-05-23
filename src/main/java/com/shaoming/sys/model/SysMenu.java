@@ -16,7 +16,7 @@ public class SysMenu {
     private Integer id; // ID
     private Integer parentId; // 父级id
     private String menuName; // 菜单名称
-    private String menuCode; // 菜单CODE
+    private String menuCode; // 路由名称
     private String menuIcon; // 菜单图标
     private Integer menuLevel; // 菜单层级
     private Integer order; // 排序（值越大，越靠前）

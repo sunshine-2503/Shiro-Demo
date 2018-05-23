@@ -1,7 +1,6 @@
 package com.shaoming.comm.config;
 
 import com.shaoming.comm.utils.MD5Util;
-import org.apache.log4j.Logger;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
@@ -17,7 +16,6 @@ import org.apache.shiro.util.ByteSource;
  * 也可以不写这个类，直接在ShiroConfiguration用HashedCredentialsMatcher注入。
  */
 public class CredentialsMatcher extends SimpleCredentialsMatcher {
-    private Logger logger = Logger.getLogger(CredentialsMatcher.class);
 
     /**
      * 进行密码的比对,验证密码是否正确
