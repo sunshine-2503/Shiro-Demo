@@ -14,6 +14,7 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,7 +54,7 @@ public class SysMenuController {
         SysUser user = (SysUser) SecurityUtils.getSubject().getPrincipal();
         // 查找用户所对应的角色
         List<SysUserRole> sysUserRoles = sysUserRoleService.selectList(new EntityWrapper<SysUserRole>().where("user_id={0} and tb_status != '删除'", user.getId()).orderBy("role_id", true));
-        if (sysUserRoles==null || sysUserRoles.size()==0)
+        if (CollectionUtils.isEmpty(sysUserRoles))
             return ResultVM.ok(null);
         // 判断用户是否为 “超级管理员”
         if (sysUserRoles.get(0).getRoleId() == 1)
@@ -63,11 +64,11 @@ public class SysMenuController {
         List<Integer> menuIdList = new ArrayList<>();
         for (SysUserRole role : sysUserRoles) {
             for (SysRoleMenu rm : sysRoleMenus) {
-                if (role.getRoleId().equals(rm.getRoleId())){
-                    if (menuIdList.contains(rm.getMenuId()))
-                        continue;
-                    menuIdList.add(rm.getMenuId());
-                }
+                if (!role.getRoleId().equals(rm.getRoleId()))
+                    continue;
+                if (menuIdList.contains(rm.getMenuId()))
+                    continue;
+                menuIdList.add(rm.getMenuId());
             }
         }
         // 查询所有菜单
@@ -122,7 +123,7 @@ public class SysMenuController {
             return ResultVM.error("已存在同名菜单！");
         }
         Integer parentId = menu.getParentId();
-        if (parentId == null) {
+        if (parentId != null) {
             SysMenu parent = sysMenuService.selectById(parentId);
             menu.setMenuLevel(parent.getMenuLevel()+1);
         }
@@ -132,7 +133,7 @@ public class SysMenuController {
     }
 
     /**
-     * 添加菜单
+     * 编辑菜单
      *   注意：需要有菜单管理权限
      */
     @RequiresPermissions({"power_menu"})
@@ -147,7 +148,7 @@ public class SysMenuController {
             return ResultVM.error("该菜单不存在或已删除！");
         }
         Integer parentId = menu.getParentId();
-        if (parentId == null) {
+        if (parentId != null) {
             SysMenu parent = sysMenuService.selectById(parentId);
             menu.setMenuLevel(parent.getMenuLevel()+1);
         }
@@ -188,7 +189,7 @@ public class SysMenuController {
      * 查询用户所拥有权限的菜单树形列表
      */
     private List<MenuTreeVo> selectMenuTree(List<MenuTreeVo> menuAllTree, List<Integer> menuIdList){
-        if (menuAllTree==null || menuAllTree.size()==0 || menuIdList==null || menuIdList.size()==0) return null;
+        if (CollectionUtils.isEmpty(menuAllTree) || CollectionUtils.isEmpty(menuIdList)) return null;
         List<MenuTreeVo> resultTree = new ArrayList<>();
         MenuTreeVo result;
         for (MenuTreeVo vo : menuAllTree) {

@@ -22,6 +22,7 @@ import org.apache.shiro.crypto.hash.SimpleHash;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -122,7 +123,7 @@ public class SysUserController {
         String algorithmName = "MD5"; // 加密方式
         int hashIterations = 2; // 加密次数（MD5次数，需要与ShiroConfig中配置的一致）
         user.setUserName(userName);
-        user.setMobile(mobile==null ? null : mobile.trim());
+        user.setMobile(mobile == null ? null : mobile.trim());
         user.setEmail(email == null ? null : email.trim());
         user.setPassword(String.valueOf(new SimpleHash(algorithmName, password, salt, hashIterations)));
         boolean bool = sysUserService.insert(user);
@@ -161,11 +162,12 @@ public class SysUserController {
         SysUser sysUser = sysUserService.selectById(user.getId());
         if (sysUser == null || "删除".equals(sysUser.getTbStatus()))
             return ResultVM.error("该用户不存在或已删除！");
-        if (StringUtils.isEmpty(user.getUserName()))
+        if (StringUtils.isEmpty(user.getUserName())) {
             return ResultVM.error("用户名不能为空！");
-        if (StringUtils.isEmpty(user.getUserName()))
+        }
+        if (StringUtils.isEmpty(user.getPassword())) {
             user.setPassword(null);
-        else {
+        } else {
             String salt = sysUser.getSalt();
             user.setSalt(salt);
             String password = user.getPassword(); //密码原值
@@ -203,18 +205,18 @@ public class SysUserController {
         List<SysUser> records = userPage.getRecords();
         // 定义返回值
         List<SysUserVo> userVos = new ArrayList<>();
-        if (records != null && records.size() > 0){
+        if (!CollectionUtils.isEmpty(records)){
             SysUserVo vo;
             List<SysRole> roles;
             for (SysUser record : records) {
                 vo = new SysUserVo();
                 roles = new ArrayList<>();
                 BeanUtils.copyProperties(record, vo);
-                if (record.getId() == 1) {
+                if (record.getId().equals(1)) {
                     roles.add(roleMap.get(1));
                 } else {
                     List<SysUserRole> userRoles = sysUserRoleService.selectList(new EntityWrapper<SysUserRole>().where("user_id = {0}", record.getId()));
-                    if (userRoles != null && userRoles.size()>0) {
+                    if (!CollectionUtils.isEmpty(userRoles)) {
                         for (SysUserRole userRole : userRoles) {
                             roles.add(roleMap.get(userRole.getRoleId()));
                         }

@@ -12,6 +12,7 @@ import com.shaoming.sys.service.SysUserRoleService;
 import com.shaoming.sys.service.SysUserService;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +46,7 @@ public class SysRoleController {
     public ResultVM addSysRole(@RequestBody SysRole role){
         if (StringUtils.isEmpty(role.getRoleName()))
             return ResultVM.ok("请设置角色名称！");
-        Boolean bool = sysRoleService.insert(role);
+        boolean bool = sysRoleService.insert(role);
         return bool ? ResultVM.ok("添加成功！") : ResultVM.error("系统错误！");
     }
 
@@ -72,7 +73,7 @@ public class SysRoleController {
             return ResultVM.error("角色名称必填！");
         if (role.getId() == 1)
             return ResultVM.error("该角色不能编辑！");
-        Boolean bool = sysRoleService.updateById(role);
+        boolean bool = sysRoleService.updateById(role);
         return bool ? ResultVM.ok("修改成功！") : ResultVM.error("系统错误！");
     }
 
@@ -88,7 +89,7 @@ public class SysRoleController {
         if (role == null || "删除".equals(role.getTbStatus()))
             return ResultVM.error("该角色不存在或已删除！");
         role.setTbStatus("删除");
-        Boolean bool = sysRoleService.updateById(role);
+        boolean bool = sysRoleService.updateById(role);
         // 删除该角色所绑定的菜单
         sysRoleMenuService.delete(new EntityWrapper<SysRoleMenu>().where("role_id={0}", id));
         // 删除该角色所绑定的用户
@@ -132,7 +133,7 @@ public class SysRoleController {
         // 获取当前角色所拥有的权限
         List<SysRoleMenu> sysRoleMenus = sysRoleMenuService.selectList(new EntityWrapper<SysRoleMenu>().where("role_id={0}", roleId));
         List<Integer> ids;
-        if (sysRoleMenus!=null && sysRoleMenus.size()>0){
+        if (!CollectionUtils.isEmpty(sysRoleMenus)){
             ids = new ArrayList<>();
             for (SysRoleMenu rm : sysRoleMenus) {
                 ids.add(rm.getId());
@@ -140,7 +141,7 @@ public class SysRoleController {
             // 删除用户当前所拥有的所有权限
             sysRoleMenuService.deleteBatchIds(ids);
         }
-        if (menuIds == null || menuIds.size()==0)
+        if (CollectionUtils.isEmpty(menuIds))
             return ResultVM.ok("设置成功！");
         // 并且给角色新增权限
         for (Integer menuId : menuIds) {
