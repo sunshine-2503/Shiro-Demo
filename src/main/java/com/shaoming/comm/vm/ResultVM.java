@@ -1,10 +1,13 @@
 package com.shaoming.comm.vm;
 
+import lombok.Data;
+
 import java.io.Serializable;
 
 /**
  * Created by ShaoMing on 2018/4/20
  */
+@Data
 public class ResultVM implements Serializable {
     private static final long serialVersionUID = 1L;
     private Integer code; // 200:成功；500:失败
@@ -42,18 +45,6 @@ public class ResultVM implements Serializable {
         this.result = result;
     }
 
-    public static ResultVM error() {
-        return error(500, "未知异常，请联系管理员");
-    }
-
-    public static ResultVM error(String msg) {
-        return error(500, msg);
-    }
-
-    public static ResultVM error(Integer code, String msg) {
-        return new ResultVM(code, msg);
-    }
-
     public static ResultVM ok() {
         return new ResultVM(200);
     }
@@ -74,6 +65,18 @@ public class ResultVM implements Serializable {
         return new ResultVM(200, msg, result);
     }
 
+    public static ResultVM error() {
+        return error(500, "未知异常，请联系管理员");
+    }
+
+    public static ResultVM error(String msg) {
+        return error(500, msg);
+    }
+
+    public static ResultVM error(Integer code, String msg) {
+        return new ResultVM(code, msg);
+    }
+
     public static ResultVM info(Boolean ret) {
         if (ret) {
             return ResultVM.ok();
@@ -82,27 +85,4 @@ public class ResultVM implements Serializable {
         }
     }
 
-    public Integer getCode() {
-        return code;
-    }
-
-    public void setCode(Integer code) {
-        this.code = code;
-    }
-
-    public String getMsg() {
-        return msg;
-    }
-
-    public void setMsg(String msg) {
-        this.msg = msg;
-    }
-
-    public Object getResult() {
-        return result;
-    }
-
-    public void setResult(Object result) {
-        this.result = result;
-    }
 }

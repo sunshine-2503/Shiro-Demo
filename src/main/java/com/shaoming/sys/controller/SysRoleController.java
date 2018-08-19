@@ -2,6 +2,7 @@ package com.shaoming.sys.controller;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.shaoming.comm.vm.ResultVM;
+import com.shaoming.comm.vm.Status;
 import com.shaoming.sys.model.SysRole;
 import com.shaoming.sys.model.SysRoleMenu;
 import com.shaoming.sys.model.SysUser;
@@ -57,7 +58,7 @@ public class SysRoleController {
     @RequiresPermissions({"power_role"})
     @GetMapping("/queryRoleList")
     public ResultVM queryRoleList(){
-        List<SysRole> roleList = sysRoleService.selectList(new EntityWrapper<SysRole>().where("tb_status != '删除'"));
+        List<SysRole> roleList = sysRoleService.selectList(new EntityWrapper<SysRole>().where("tb_status != {0}", Status.DELETE));
         return ResultVM.ok(roleList);
     }
 
@@ -86,9 +87,9 @@ public class SysRoleController {
         if (id == 1)
             return ResultVM.error("该角色不能删除！");
         SysRole role = sysRoleService.selectById(id);
-        if (role == null || "删除".equals(role.getTbStatus()))
+        if (role == null || Status.DELETE.equals(role.getTbStatus()))
             return ResultVM.error("该角色不存在或已删除！");
-        role.setTbStatus("删除");
+        role.setTbStatus(Status.DELETE);
         boolean bool = sysRoleService.updateById(role);
         // 删除该角色所绑定的菜单
         sysRoleMenuService.delete(new EntityWrapper<SysRoleMenu>().where("role_id={0}", id));

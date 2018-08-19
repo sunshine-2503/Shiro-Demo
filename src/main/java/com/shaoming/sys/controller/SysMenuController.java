@@ -1,7 +1,9 @@
 package com.shaoming.sys.controller;
 
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.shaoming.comm.vm.ResultVM;
+import com.shaoming.comm.vm.Status;
 import com.shaoming.sys.model.SysMenu;
 import com.shaoming.sys.model.SysRoleMenu;
 import com.shaoming.sys.model.SysUser;
@@ -41,7 +43,7 @@ public class SysMenuController {
     @RequiresPermissions({"power_menu"})
     @GetMapping("/queryAllMenu")
     public ResultVM queryAllMenu() {
-        List<SysMenu> sysMenus = sysMenuService.selectList(new EntityWrapper<SysMenu>().where("tb_status != '删除'"));
+        List<SysMenu> sysMenus = sysMenuService.selectList(new EntityWrapper<SysMenu>().where("tb_status != {0}", Status.DELETE));
         return ResultVM.ok(sysMenus);
     }
 
@@ -53,7 +55,10 @@ public class SysMenuController {
         // 获取当前登录用户信息
         SysUser user = (SysUser) SecurityUtils.getSubject().getPrincipal();
         // 查找用户所对应的角色
-        List<SysUserRole> sysUserRoles = sysUserRoleService.selectList(new EntityWrapper<SysUserRole>().where("user_id={0} and tb_status != '删除'", user.getId()).orderBy("role_id", true));
+        Wrapper<SysUserRole> wrapper = new EntityWrapper<>();
+        wrapper.where("user_id={0} and tb_status != {1}", user.getId(), Status.DELETE);
+        wrapper.orderBy("role_id", true);
+        List<SysUserRole> sysUserRoles = sysUserRoleService.selectList(wrapper);
         if (CollectionUtils.isEmpty(sysUserRoles))
             return ResultVM.ok(null);
         // 判断用户是否为 “超级管理员”
@@ -84,7 +89,7 @@ public class SysMenuController {
     @GetMapping("/queryRoleMenuTree")
     public ResultVM queryRoleMenuTree(@RequestParam(name = "roleId") Integer roleId){
         // 查找所有权限菜单
-        List<SysRoleMenu> sysRoleMenus = sysRoleMenuService.selectList(new EntityWrapper<SysRoleMenu>().where("role_id={0} and tb_status != '删除'", roleId));
+        List<SysRoleMenu> sysRoleMenus = sysRoleMenuService.selectList(new EntityWrapper<SysRoleMenu>().where("role_id={0} and tb_status != {1}", roleId, Status.DELETE));
         List<Integer> menuIdList = new ArrayList<>();
         for (SysRoleMenu rm : sysRoleMenus) {
             if (menuIdList.contains(rm.getMenuId()))
@@ -165,7 +170,7 @@ public class SysMenuController {
         SysMenu sysMenu = sysMenuService.selectById(menuId);
         if (sysMenu == null)
             return ResultVM.error("该菜单不存在或已删除！");
-        sysMenu.setTbStatus("删除");
+        sysMenu.setTbStatus(Status.DELETE);
         // 将该菜单设为删除状态
         sysMenuService.updateById(sysMenu);
         // 删除该菜单所绑定的角色
@@ -208,7 +213,10 @@ public class SysMenuController {
      */
     private List<MenuTreeVo> selectAllTree(MenuTreeVo parent){
         Integer parentId = parent == null ? 0 : parent.getId();
-        List<SysMenu> children = sysMenuService.selectList(new EntityWrapper<SysMenu>().where("`parent_id`={0} and tb_status != '删除'", parentId).orderBy("`order`",  false));
+        Wrapper<SysMenu> wrapper = new EntityWrapper<>();
+        wrapper.where("`parent_id`={0} and `tb_status` != {1}", parentId, Status.DELETE);
+        wrapper.orderBy("`order`",  false);
+        List<SysMenu> children = sysMenuService.selectList(wrapper);
         if (children==null || children.size()==0)
             return null;
         List<MenuTreeVo> voList = new ArrayList<>();

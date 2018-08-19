@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.plugins.Page;
 import com.shaoming.comm.utils.StringUtil;
 import com.shaoming.comm.vm.PageVM;
 import com.shaoming.comm.vm.ResultVM;
+import com.shaoming.comm.vm.Status;
 import com.shaoming.sys.model.SysRole;
 import com.shaoming.sys.model.SysUser;
 import com.shaoming.sys.model.SysUserRole;
@@ -140,9 +141,9 @@ public class SysUserController {
         if (id == 1)
             return ResultVM.error("该用户不得删除！");
         SysUser user = sysUserService.selectById(id);
-        if (user == null || "删除".equals(user.getTbStatus()))
+        if (user == null || Status.DELETE.equals(user.getTbStatus()))
             return ResultVM.error("该用户不存在或已删除！");
-        user.setTbStatus("删除");
+        user.setTbStatus(Status.DELETE);
         sysUserService.updateById(user);
         // 删除用户所对应的用户角色关系数据
         sysUserRoleService.delete(new EntityWrapper<SysUserRole>().where("user_id={0}", id));
@@ -160,7 +161,7 @@ public class SysUserController {
         if (userId == null)
             return ResultVM.error("参数有误！");
         SysUser sysUser = sysUserService.selectById(user.getId());
-        if (sysUser == null || "删除".equals(sysUser.getTbStatus()))
+        if (sysUser == null || Status.DELETE.equals(sysUser.getTbStatus()))
             return ResultVM.error("该用户不存在或已删除！");
         if (StringUtils.isEmpty(user.getUserName())) {
             return ResultVM.error("用户名不能为空！");
@@ -190,7 +191,7 @@ public class SysUserController {
                                   @RequestParam(name = "size", defaultValue = "20") Integer size){
         PageVM pageVM = new PageVM();
         Wrapper<SysUser> wrapper = new EntityWrapper<>();
-        wrapper.where("tb_status != '删除'");
+        wrapper.where("tb_status != {0}", Status.DELETE);
         wrapper.addFilterIfNeed(!StringUtils.isEmpty(userName), "(user_name like {0} or mobile like {0} or email like {0})", "%" + userName + "%");
         Page<SysUser> userPage = sysUserService.selectPage(new Page<>(page, size), wrapper);
         // 查询数所有角色
@@ -270,7 +271,7 @@ public class SysUserController {
             }
         }
         // 获取所有角色
-        List<SysRole> roles = sysRoleService.selectList(new EntityWrapper<SysRole>().where("tb_status != '删除'"));
+        List<SysRole> roles = sysRoleService.selectList(new EntityWrapper<SysRole>().where("tb_status != {0}", Status.DELETE));
         if (roles == null || roles.size() == 0)
             return ResultVM.ok();
         List<SysRoleVo> voList = new ArrayList<>();
