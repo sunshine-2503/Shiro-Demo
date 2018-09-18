@@ -12,6 +12,7 @@ import com.shaoming.sys.service.SysMenuService;
 import com.shaoming.sys.service.SysRoleMenuService;
 import com.shaoming.sys.service.SysUserRoleService;
 import com.shaoming.sys.vo.MenuTreeVo;
+import io.swagger.annotations.*;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.BeanUtils;
@@ -26,6 +27,7 @@ import java.util.List;
 /**
  * Created by ShaoMing on 2018/4/20
  */
+@Api(value = "sysMenu", description = "菜单管理")
 @RestController
 @RequestMapping("/web/sysMenu")
 public class SysMenuController {
@@ -40,9 +42,14 @@ public class SysMenuController {
     /**
      * 查询所有菜单
      */
+    @ApiOperation(value="查询所有菜单")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "成功"),
+            @ApiResponse(code = 403, message = "没有访问权限")
+    })
     @RequiresPermissions({"power_menu"})
     @GetMapping("/queryAllMenu")
-    public ResultVM queryAllMenu() {
+    public ResultVM<List<SysMenu>> queryAllMenu() {
         List<SysMenu> sysMenus = sysMenuService.selectList(new EntityWrapper<SysMenu>().where("tb_status != {0}", Status.DELETE));
         return ResultVM.ok(sysMenus);
     }
@@ -51,7 +58,7 @@ public class SysMenuController {
      * 用户所拥有权限对应的权限树形菜单结构
      */
     @GetMapping("/queryUserMenuTree")
-    public ResultVM queryUserMenuTree(){
+    public ResultVM<List<MenuTreeVo>> queryUserMenuTree(){
         // 获取当前登录用户信息
         SysUser user = (SysUser) SecurityUtils.getSubject().getPrincipal();
         // 查找用户所对应的角色
@@ -85,9 +92,10 @@ public class SysMenuController {
      * 获取角色权限列表
      *   注意：需要有菜单管理权限
      */
+    @ApiOperation(value="角色权限列表")
     @RequiresPermissions({"power_menu"})
     @GetMapping("/queryRoleMenuTree")
-    public ResultVM queryRoleMenuTree(@RequestParam(name = "roleId") Integer roleId){
+    public ResultVM<List<MenuTreeVo>> queryRoleMenuTree(@ApiParam(name = "roleId", value = "角色ID") Integer roleId){
         // 查找所有权限菜单
         List<SysRoleMenu> sysRoleMenus = sysRoleMenuService.selectList(new EntityWrapper<SysRoleMenu>().where("role_id={0} and tb_status != {1}", roleId, Status.DELETE));
         List<Integer> menuIdList = new ArrayList<>();
@@ -108,7 +116,7 @@ public class SysMenuController {
      */
     @RequiresPermissions({"power_menu"})
     @GetMapping("/queryMenuTree")
-    public ResultVM queryMenuTree(){
+    public ResultVM<List<MenuTreeVo>> queryMenuTree(){
         return ResultVM.ok(this.selectAllTree(null));
     }
 
@@ -116,9 +124,11 @@ public class SysMenuController {
      * 添加菜单
      *   注意：需要有菜单管理权限
      */
+    @ApiOperation(value="添加菜单")
+
     @RequiresPermissions({"power_menu"})
     @PostMapping("/addMenu")
-    public ResultVM addMenu(@RequestBody SysMenu menu){
+    public ResultVM<String> addMenu(@RequestBody SysMenu menu){
         if (StringUtils.isEmpty(menu.getMenuName()))
             return ResultVM.error("菜单名称必填！");
         if (StringUtils.isEmpty(menu.getMenuCode()))
@@ -143,7 +153,7 @@ public class SysMenuController {
      */
     @RequiresPermissions({"power_menu"})
     @PostMapping("/editMenu")
-    public ResultVM editMenu(@RequestBody SysMenu menu){
+    public ResultVM<String> editMenu(@RequestBody SysMenu menu){
         if (StringUtils.isEmpty(menu.getMenuName()))
             return ResultVM.error("菜单名称必填！");
         if (StringUtils.isEmpty(menu.getMenuCode()))
@@ -166,7 +176,7 @@ public class SysMenuController {
      */
     @RequiresPermissions({"power_menu"})
     @GetMapping("/deleteMenu")
-    public ResultVM deleteMenu(Integer menuId){
+    public ResultVM<String> deleteMenu(Integer menuId){
         SysMenu sysMenu = sysMenuService.selectById(menuId);
         if (sysMenu == null)
             return ResultVM.error("该菜单不存在或已删除！");
@@ -217,7 +227,7 @@ public class SysMenuController {
         wrapper.where("`parent_id`={0} and `tb_status` != {1}", parentId, Status.DELETE);
         wrapper.orderBy("`order`",  false);
         List<SysMenu> children = sysMenuService.selectList(wrapper);
-        if (children==null || children.size()==0)
+        if (CollectionUtils.isEmpty(children))
             return null;
         List<MenuTreeVo> voList = new ArrayList<>();
         MenuTreeVo vo;

@@ -44,15 +44,16 @@ public class ShiroConfig {
     @Bean
     public ShiroFilterFactoryBean shiroFilter(SecurityManager securityManager){
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
-        //设置安全管理器
+        // 设置安全管理器
         shiroFilterFactoryBean.setSecurityManager(securityManager);
-        //默认跳转到登陆页面
+        // 默认跳转到登陆页面
         shiroFilterFactoryBean.setLoginUrl("/v1/web/sysUser/noLogin");
-        //登陆成功后的页面
+        // 登陆成功后的页面
         shiroFilterFactoryBean.setSuccessUrl("/v1/web/sysUser/loginSuccess");
+        // 没有权限页面
         shiroFilterFactoryBean.setUnauthorizedUrl("/403");
 
-        //自定义过滤器
+        // 自定义过滤器
         Map<String, Filter> filterMap = new LinkedHashMap<>();
         shiroFilterFactoryBean.setFilters(filterMap);
 
@@ -62,6 +63,13 @@ public class ShiroConfig {
         // 配置不会被拦截的链接 顺序判断
         // 配置登录方法不被拦截
         filterChainDefinitionMap.put("/v1/web/sysUser/login", "anon");
+
+        // 配置接口文档不被拦截
+        filterChainDefinitionMap.put("/v1/swagger-ui.html", "anon");
+        filterChainDefinitionMap.put("/v1/swagger-resources/**", "anon");
+        filterChainDefinitionMap.put("/v1/v2/**", "anon");
+        filterChainDefinitionMap.put("/v1/webjars/**", "anon");
+
         // 配置APP接口不被拦截
         filterChainDefinitionMap.put("/v1/app/**", "anon");
         // 配置静态页面不被拦截

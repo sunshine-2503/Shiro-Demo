@@ -7,4 +7,7 @@ import com.shaoming.sys.model.SysUser;
  * Created by ShaoMing on 2018/4/20
  */
 public interface SysUserService extends IService<SysUser> {
+
+    String test(Integer num) throws Exception;
+
 }
