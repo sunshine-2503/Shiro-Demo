@@ -17,6 +17,7 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +39,8 @@ public class SysMenuController {
     private SysUserRoleService sysUserRoleService;
     @Autowired
     private SysRoleMenuService sysRoleMenuService;
+    @Autowired
+    private RedisTemplate<String, List<SysMenu>> redisTemplate;
 
     /**
      * 查询所有菜单
@@ -50,7 +53,17 @@ public class SysMenuController {
     @RequiresPermissions({"power_menu"})
     @GetMapping("/queryAllMenu")
     public ResultVM<List<SysMenu>> queryAllMenu() {
-        List<SysMenu> sysMenus = sysMenuService.selectList(new EntityWrapper<SysMenu>().where("tb_status != {0}", Status.DELETE));
+        List<SysMenu> sysMenus;
+        // 判断缓存中是否存在
+        if (redisTemplate.hasKey("SYS_MENUS")) {
+            // 读取缓存数据
+            sysMenus = redisTemplate.opsForValue().get("SYS_MENUS");
+        } else {
+            // 读取数据库中数据
+            sysMenus = sysMenuService.selectList(new EntityWrapper<SysMenu>().where("tb_status != {0}", Status.DELETE));
+            // 将数据存放到redis缓存中
+            redisTemplate.opsForValue().set("SYS_MENUS", sysMenus);
+        }
         return ResultVM.ok(sysMenus);
     }
 
