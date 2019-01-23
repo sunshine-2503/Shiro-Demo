@@ -22,6 +22,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class SysMenuController {
     private SysUserRoleService sysUserRoleService;
     @Autowired
     private SysRoleMenuService sysRoleMenuService;
-    @Autowired
+    @Resource
     private RedisTemplate<String, List<SysMenu>> redisTemplate;
 
     /**
